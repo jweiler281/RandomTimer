@@ -8,9 +8,22 @@ import datetime
 import csv
 
 currhour = datetime.datetime.now()
-now_H = currhour.hour #Stores the current hour
-now_M = currhour.minute #Stores the current minute, currently not used
+#now_H = currhour.hour #Stores the current hour
+#now_M = currhour.minute #Stores the current minute, currently not used
+
 i = 0
+
+def csvWriter(fileN,text):
+        #Writes lines of return to .csv for testing and stats purposes
+        #Used for testing and for logging
+        with open(fileN, 'ab') as csvfile: #Appends lines using 'ab' flags
+                filewriter = csv.writer(csvfile, delimiter=';')
+                filewriter.writerow([text])
+
+def logFileNaming(baseFileName):
+        #Gives log file appropriate naming based upon date
+        #Assumes baseFileName has filetype suffix (.csv) already
+        return str(currhour.year) + "_" + str(currhour.month) + "_" + str(currhour.day) + "-" + str(baseFileName)
 
 def hourMult(hr,mi):
         #Takes time and determines multiplier
@@ -27,7 +40,7 @@ def hourMult(hr,mi):
         elif (hr > 22 and hr < 24): #22:00 - 23:59
                 return (100,'E',1)
         else:
-                return (215,'F',1) #Catches edge case, replace with error catching
+                return (215,'F',1) #Catches edge case, replace with error catching/exception handling
 
 def timeCheck(multtC):
         #Takes input of multiplier (multtC) and spits out lower/uper values
@@ -43,8 +56,16 @@ def lightsOn(inTuple,lO):
         else:
                 return ("Lights Off",0) #If not, lights off
 
-
-
+def lightsOps():
+        #Will take the data from the other modules and operate the lights
+        opsMult = hourMult(currhour.hour, currhour.minute) #Gets applicable mult to current hour:minute
+        opsMultPerc = opsMult[0]*.001 #Stores mult as a % for statistic analysis purposes
+        opsTC = timeCheck(opsMult) #Calls timeCheck(mult) to get randomly generated (r1, r2) values returned as tuple
+        opsLights = lightsOn(opsTC,opsMult[0]) #Determines if the lights are to be on or off
+        #r1;r2;mult;mult%;multHours;Hour;Minute;LightsOn? --> Log Format
+        opsLogs = str(opsTC[0])+";"+str(opsTC[1])+";"+str(opsMult[0])+";"+str(opsMultPerc)+";"+str(opsMult[2])+";"+str(currhour.hour)+";"+str(currhour.minute)+";"+str(opsLights[1])
+        csvWriter('RandomPyLogs.csv',opsLogs)
+        return opsLights[1] #Yes or No for lights being on
 
 ##############################
 ##### TESTING AREA BELOW #####
@@ -53,14 +74,6 @@ def lightsOn(inTuple,lO):
 #def likelihoodOn()
 #An idea for a method which will tell how often Lights On happens compared to
 #how likely that should happen.
-
-def csvwriter(fileN,text):
-        #Writes lines of return to .csv for testing and stats purposes
-        #Could be considered logging...maybe
-        with open(fileN, 'ab') as csvfile: #Appends lines using 'ab' flags
-                filewriter = csv.writer(csvfile, delimiter=';')
-                filewriter.writerow([text])
-
 
 def testingResults():
         #Used for testing purposes only
@@ -72,7 +85,7 @@ def testingResults():
         multPerc = mult[0]*.001 #Stores mult as a % for statistic analysis purposes
         tc = timeCheck(mult) #Calls timeCheck(mult) to get randomly generated (r1, r2) values returned as tuple
         lights = lightsOn(tc,mult[0]) #Determines if the lights are on in each scenario
-        return str(tc[0])+";"+str(tc[1])+";"+str(mult[0])+";"+str(multPerc)+";"+str(mult[2])+";"+str(now_H)+";"+str(now_M)+";"+str(lights[1])
+        return str(tc[0])+";"+str(tc[1])+";"+str(mult[0])+";"+str(multPerc)+";"+str(mult[2])+";"+str(currhour.hour)+";"+str(currhour.minute)+";"+str(lights[1])
         
 def manyIterations():
         #Used for testing purposes only
@@ -81,7 +94,7 @@ def manyIterations():
         iterNum = 1400000 #Number of results to be gained through testing
         while (mIi != iterNum):
                 testString = str(testingResults()) #Stores testingResults() return as a string for print to teststat.csv
-                csvwriter('teststat.csv',testString) #Calls csvwriter to write testString to teststat.csv
+                csvWriter('teststat.csv',testString) #Write testString to teststat.csv
                 print mIi #Counter for on-screen real time status
                 mIi = mIi + 1 #Increments counter for while loop
 
