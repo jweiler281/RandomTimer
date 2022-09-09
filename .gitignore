@@ -1,5 +1,5 @@
 # Large csv data files for this application
-teststat*.csv
+*.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
